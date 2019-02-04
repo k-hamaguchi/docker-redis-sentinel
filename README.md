@@ -40,3 +40,74 @@ docker run -it --rm --network sentinel_default redis:alpine redis-cli -h redis-m
 docker run -it --rm --network sentinel_default redis:alpine redis-cli -h redis-slave-1
 docker run -it --rm --network sentinel_default redis:alpine redis-cli -h redis-slave-2
 ```
+
+## Sentinel
+
+[Redis Sentinel Documentation](https://redis.io/topics/sentinel)
+
+### Start servers
+
+```bash
+docker-compose up --scale redis-sentinel=3 --scale redis-slave=2
+```
+
+### Connect to sentinel
+
+```bash
+docker-compose exec --index=1 redis-sentinel redis-cli -p 26379
+```
+
+### Testing the failover
+
+#### Failover
+
+```bash
+$ docker-compose exec redis-master redis-cli ROLE
+1) "master"
+2) (integer) 3769891
+3) 1) 1) "10.255.11.6"
+      2) "6379"
+      3) "3769891"
+   2) 1) "10.255.11.5"
+      2) "6379"
+      3) "3769891"
+$ docker-compose pause redis-master
+Pausing sentinel_redis-master_1 ... done
+$ docker-compose unpause redis-master
+Unpausing sentinel_redis-master_1 ... done
+$ docker-compose exec redis-sentinel redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
+1) "10.255.11.5"
+2) "6379"
+$ docker-compose exec redis-sentinel redis-cli -h 10.255.11.5 -p 6379 ROLE
+1) "master"
+2) (integer) 3738399
+3) 1) 1) "10.255.11.6"
+      2) "6379"
+      3) "3738125"
+   2) 1) "10.255.11.2"
+      2) "6379"
+      3) "3738125"
+```
+
+#### Failback
+
+```bash
+$ docker-compose pause redis-slave
+Pausing sentinel_redis-slave_1 ... done
+Pausing sentinel_redis-slave_2 ... done
+$ docker-compose unpause redis-slave
+Unpausing sentinel_redis-slave_2 ... done
+Unpausing sentinel_redis-slave_1 ... done
+$ docker-compose exec redis-sentinel redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
+1) "10.255.11.2"
+2) "6379"
+$ docker-compose exec redis-sentinel redis-cli -h 10.255.11.2 -p 6379 ROLE
+1) "master"
+2) (integer) 3764095
+3) 1) 1) "10.255.11.6"
+      2) "6379"
+      3) "3764095"
+   2) 1) "10.255.11.5"
+      2) "6379"
+      3) "3764095"
+```
