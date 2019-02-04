@@ -47,6 +47,8 @@ docker run -it --rm --network sentinel_default redis:alpine redis-cli -h redis-s
 
 ### Start servers
 
+Start one master, two slaves and three sentinels.
+
 ```bash
 docker-compose up --scale redis-sentinel=3 --scale redis-slave=2
 ```
@@ -71,10 +73,7 @@ $ docker-compose exec redis-master redis-cli ROLE
    2) 1) "10.255.11.5"
       2) "6379"
       3) "3769891"
-$ docker-compose pause redis-master
-Pausing sentinel_redis-master_1 ... done
-$ docker-compose unpause redis-master
-Unpausing sentinel_redis-master_1 ... done
+$ docker-compose exec redis-master redis-cli DEBUG sleep 30
 $ docker-compose exec redis-sentinel redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
 1) "10.255.11.5"
 2) "6379"
@@ -92,12 +91,7 @@ $ docker-compose exec redis-sentinel redis-cli -h 10.255.11.5 -p 6379 ROLE
 #### Failback
 
 ```bash
-$ docker-compose pause redis-slave
-Pausing sentinel_redis-slave_1 ... done
-Pausing sentinel_redis-slave_2 ... done
-$ docker-compose unpause redis-slave
-Unpausing sentinel_redis-slave_2 ... done
-Unpausing sentinel_redis-slave_1 ... done
+$ docker-compose exec --index 1 redis-slave redis-cli DEBUG sleep 30
 $ docker-compose exec redis-sentinel redis-cli -p 26379 SENTINEL get-master-addr-by-name mymaster
 1) "10.255.11.2"
 2) "6379"
@@ -110,4 +104,19 @@ $ docker-compose exec redis-sentinel redis-cli -h 10.255.11.2 -p 6379 ROLE
    2) 1) "10.255.11.5"
       2) "6379"
       3) "3764095"
+```
+
+### Reconnecting from the client
+
+Start the client.
+
+```bash
+./incr.coffee
+```
+
+Stop the master to failover.
+
+```bash
+$ docker-compose stop redis-master
+Stopping sentinel_redis-master_1 ... done
 ```

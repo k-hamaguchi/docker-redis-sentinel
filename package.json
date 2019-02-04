@@ -1,0 +1,14 @@
+{
+  "name": "sentinel",
+  "version": "1.0.0",
+  "description": "## Replication",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "浜口健一郎 <khamaguchi@bemap.co.jp>",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "ioredis": "^4.6.2"
+  }
+}
