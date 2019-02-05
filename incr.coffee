@@ -13,7 +13,7 @@ main = ->
   redis = new Redis
     sentinels: [
       {
-        host: '10.255.11.3'
+        host: 'localhost'
         port: 26379
       }
     ]

@@ -3,8 +3,6 @@ version: '3'
 services:
   redis-master:
     image: redis:alpine
-    ports:
-      - 6379:6379
 
   redis-slave:
     image: redis:alpine
@@ -14,5 +12,7 @@ services:
 
   redis-sentinel:
     build: ./sentinel
+    ports:
+      - 26379-26479:26379
     depends_on:
       - redis-master
