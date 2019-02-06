@@ -1,14 +1,18 @@
 {
-  "name": "sentinel",
+  "name": "redis-sentinel",
   "version": "1.0.0",
-  "description": "## Replication",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "Test Redis Sentinel",
+  "author": {
+    "name": "k-hamaguchi",
+    "url": "https://github.com/k-hamaguchi/redis-sentinel"
   },
-  "author": "浜口健一郎 <khamaguchi@bemap.co.jp>",
-  "license": "UNLICENSED",
+  "license": "ISC",
+  "repository": "github:k-hamaguchi/redis-sentinel",
+  "scripts": {
+    "start": "coffee incr.coffee"
+  },
   "dependencies": {
+    "coffeescript": "^2.3.2",
     "ioredis": "^4.6.2"
   }
 }

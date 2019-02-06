@@ -6,28 +6,41 @@ sleep = (n) ->
     setTimeout resolve, n
 
 log = (msg) ->
-  time = new Date().toJSON()
+  time = new Date().toLocaleTimeString()
   console.log time, msg
 
-main = ->
+mainLoop = (sentinels) ->
+  # get the master from sentinels.
+  log "SENTINELS: " + ("#{s.host}:#{s.port}" for s in sentinels).join ', '
   redis = new Redis
-    sentinels: [
-      {
-        host: 'localhost'
-        port: 26379
-      }
-    ]
+    sentinels: sentinels
     name: 'mymaster'
 
-  redis.on 'connect', -> log 'connect'
-  redis.on 'ready', -> log 'ready'
-  redis.on 'error', -> log 'error'
-  redis.on 'close', -> log 'close'
-  redis.on 'reconnecting', -> log 'reconnecting'
-  redis.on 'end', -> log 'end'
-  
+  # log all events.
+  redis.on 'connect', -> log 'CONNECT'
+  redis.on 'ready', -> log 'READY'
+  redis.on 'error', -> log 'ERROR'
+  redis.on 'close', -> log 'CLOSE'
+  redis.on 'reconnecting', -> log 'RECONNECTING'
+  redis.on 'end', -> log 'END'
+
+  # increment key forever.
   while true
     log await redis.incr 'foo'
     await sleep 1000
 
-do main
+main = (args) ->
+  try
+    # get port numbers from arguments.
+    ports = args.map(Number).filter(Number.isInteger)
+    # set the default if port numbers were not specified.
+    ports = [26379, 26380, 26381] unless ports.length
+    # Your can specify the host via environment variable.
+    host = process.env.HOST or 'localhost'
+    sentinels = ports.map (port) -> host: host, port: port
+    await mainLoop sentinels
+  catch err
+    console.error err
+    process.exit 1
+
+main process.argv[2..]
