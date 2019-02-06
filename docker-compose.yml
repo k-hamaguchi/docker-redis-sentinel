@@ -3,9 +3,13 @@ version: '3'
 services:
   redis-master:
     image: redis:alpine
+    ports:
+      - 6379:6379
 
   redis-slave:
     image: redis:alpine
+    ports:
+      - 6380-6381:6379
     depends_on:
       - redis-master
     command: redis-server --slaveof redis-master 6379
